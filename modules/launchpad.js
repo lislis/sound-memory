@@ -4,6 +4,42 @@ const color_map = {
     red: '0x63',
     green: '0x60',
 };
+import animals from '../data/animals.json' with { type: 'json' };
+
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+function preloadSounds(animalSounds) {
+    const audioMap = {};
+    let loadedCount = 0;
+
+    return new Promise((resolve, reject) => {
+        animalSounds.forEach(item => {
+            const audio = new Audio();
+            audio.src = item.soundFilePath;
+            audio.preload = "auto";
+
+            audio.addEventListener("canplaythrough", () => {
+                loadedCount++;
+                audioMap[item.animal] = audio;
+
+                if (loadedCount === animalSounds.length) {
+                    resolve(audioMap);
+                }
+            });
+
+            audio.addEventListener("error", () => {
+                reject(new Error(`Failed to load sound: ${item.soundFilePath}`));
+            });
+        });
+    });
+}
 
 const state_map = {
     unknown: color_map.yellow,
@@ -26,6 +62,8 @@ function Game(output, input) {
     this.af = null;
     this.current_turn = '';
     this.active_cell = {};
+    this.random_animals = [];
+    this.animal_sounds = [];
 
     this.onMidiMessage = (event) => {
         let event_msg = []
@@ -46,27 +84,30 @@ function Game(output, input) {
 
     this.updateCell = (cell) => {
         this.grid.forEach((x, i) => {
-            if (x.addr === cell) {
-                if (this[this.current_turn].picks === 0) {
-                    x.state = state_map.active;
-                    this.active_cell = x;
-                } else { // tb monitored
-                    x.state = state_map.active;
+            if (x.addr === cell && x.state !== color_map.off) {
+                x.state = state_map.active;
+                this.animal_sounds[x.value].play();
+                console.log(x.value);
 
-                    console.log(x.value, this.active_cell.value);
+                if (this[this.current_turn].picks === 0) {
+                    this.active_cell = x;
+                } else {
                     if (x.value === this.active_cell.value) {
                         this[this.current_turn].points++;
                         this[this.current_turn].picks = 0;
                         x.state = color_map.off;
                         this.active_cell.state = color_map.off;
-                    } else { // wrong guess, both turn unknown
+                        this.active_cell = null;
+                        // play win sound
+                    } else {
                         x.state = color_map.yellow;
                         this.active_cell.state = color_map.yellow;
+                        // play womp womp sound
                     }
                 }
             }
         });
-    }
+    };
 
     this.handlePlayerPicks = () => {
         if (this[this.current_turn].picks < 1) {
@@ -79,12 +120,17 @@ function Game(output, input) {
 
     this.init_grid = () => {
         let grid = [];
+        let counter = 0;
 
         for (let i = 0; i <= 7; i++) {
             for (let j = 0; j <= 7; j++) {
-                grid.push({ addr: `0x${j}${i}`, state: state_map.unknown, value: 0 });
+                grid.push({ addr: `0x${j}${i}`,
+                            state: state_map.unknown,
+                            value: this.random_animals[counter].animal });
+                counter++;
             }
         }
+        //console.log(grid);
         this.grid = grid;
     };
 
@@ -103,13 +149,14 @@ function Game(output, input) {
         }
     };
 
-    this.start_game = () => {
+    this.start_game = async () => {
+        //console.log(animals)
+        this.random_animals = shuffleArray(animals.concat(animals));
+        this.animal_sounds = await preloadSounds(animals);
+
         this.init_grid();
         this.init_players();
-
-        this.grid.forEach(x => {
-            this.output.send(this.color_msg(x.addr, color_map.yellow));
-        });
+        this.drawGrid();
 
         this.current_turn = 'player1';
         this.af = window.requestAnimationFrame(this.gameloop);
@@ -122,11 +169,6 @@ function Game(output, input) {
         this.drawPlayerPoints('player2');
         this.drawGrid();
 
-        if (this.current_turn == 'player1') {
-            //this.drawPlayerPoints('player1');
-        }
-
-        //this.gameloop();
         this.af = window.requestAnimationFrame(this.gameloop);
     };
 
