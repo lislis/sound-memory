@@ -4,8 +4,6 @@ import { Game } from './modules/launchpad.js';
 
 //let midi, input, output = null;
 const controller_name = "Launchpad Mini";
-const note_on = '0x0';
-const note_off = '0x7f';
 
 document.addEventListener('DOMContentLoaded', async () => {
   //console.log(`loaded ${ Date.now()}`);

@@ -53,7 +53,7 @@ async function midi_connect(controller_name) {
   midiAccess.inputs.forEach((entry) => {
     if (entry.name === controller_name) {
       input = entry;
-      input.onmidimessage = onMIDIMessage;
+      //input.onmidimessage = onMIDIMessage;
     }
   });
   midiAccess.outputs.forEach((entry) => {

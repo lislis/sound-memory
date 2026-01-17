@@ -5,29 +5,64 @@ const color_map = {
     green: '0x60',
 };
 
+const state_map = {
+    unknown: color_map.yellow,
+    active: color_map.red,
+    correct: color_map.green,
+    wrong: color_map.red,
+    done: color_map.off
+}
+
+const note_off = '0x0';
+const note_on = '0x7f';
+
+
 function Game(output, input) {
     this.output = output;
     this.input = input;
     this.grid = [];
-    this.player1 = { buttons: [], points: 7, picks: 0 };
+    this.player1 = { buttons: [], points: 0, picks: 0 };
     this.player2 = { buttons: [], points: 0, picks: 0 };
     this.af = null;
     this.current_turn = '';
+
+    this.onMidiMessage = (event) => {
+        let event_msg = []
+        for (const character of event.data) {
+            let msg = `0x${character.toString(16)}`;
+            event_msg.push(msg);
+        }
+
+        if (event_msg[2] === note_off ) {
+            this.handlePlayerPicks();
+        }
+
+    }
+    this.input.onmidimessage = this.onMidiMessage;
+
+    this.handlePlayerPicks = () => {
+        if (this[this.current_turn].picks < 1) {
+            this[this.current_turn].picks++;
+        } else if(this[this.current_turn].picks === 1) {
+            this[this.current_turn].picks = 0;
+            this.current_turn = this.current_turn === 'player1' ? 'player2' : 'player1';
+        }
+    }
 
     this.init_grid = () => {
         let grid = [];
 
         for (let i = 0; i <= 7; i++) {
             for (let j = 0; j <= 7; j++) {
-                grid.push({ addr: `0x${j}${i}` });
+                grid.push({ addr: `0x${j}${i}`, state: state_map.unknown, value: 0 });
             }
         }
         this.grid = grid;
     };
 
     this.init_players = () => {
-        this.player1 = { buttons: [], points: 2, picks: 0 };
-        this.player2 = { buttons: [], points: 3, picks: 0 };
+        this.player1 = { buttons: [], points: 0, picks: 0 };
+        this.player2 = { buttons: [], points: 0, picks: 0 };
         // player button addresses are a bit weird...
 
         let count_up = [68, 69, '6a', '6b', '6c', '6d', '6e', '6f'];
