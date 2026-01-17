@@ -25,6 +25,7 @@ function Game(output, input) {
     this.player2 = { buttons: [], points: 0, picks: 0 };
     this.af = null;
     this.current_turn = '';
+    this.active_cell = {};
 
     this.onMidiMessage = (event) => {
         let event_msg = []
@@ -34,11 +35,38 @@ function Game(output, input) {
         }
 
         if (event_msg[2] === note_off ) {
+            console.log(event_msg, this.current_turn);
+
+            this.updateCell(event_msg[1]);
             this.handlePlayerPicks();
         }
 
     }
     this.input.onmidimessage = this.onMidiMessage;
+
+    this.updateCell = (cell) => {
+        this.grid.forEach((x, i) => {
+            if (x.addr === cell) {
+                if (this[this.current_turn].picks === 0) {
+                    x.state = state_map.active;
+                    this.active_cell = x;
+                } else { // tb monitored
+                    x.state = state_map.active;
+
+                    console.log(x.value, this.active_cell.value);
+                    if (x.value === this.active_cell.value) {
+                        this[this.current_turn].points++;
+                        this[this.current_turn].picks = 0;
+                        x.state = color_map.off;
+                        this.active_cell.state = color_map.off;
+                    } else { // wrong guess, both turn unknown
+                        x.state = color_map.yellow;
+                        this.active_cell.state = color_map.yellow;
+                    }
+                }
+            }
+        });
+    }
 
     this.handlePlayerPicks = () => {
         if (this[this.current_turn].picks < 1) {
@@ -85,22 +113,30 @@ function Game(output, input) {
 
         this.current_turn = 'player1';
         this.af = window.requestAnimationFrame(this.gameloop);
+        this.gameloop();
     };
     this.gameloop = (dt) => {
-        this.reset();
+        //this.reset();
 
         this.drawPlayerPoints('player1');
         this.drawPlayerPoints('player2');
+        this.drawGrid();
 
         if (this.current_turn == 'player1') {
             //this.drawPlayerPoints('player1');
         }
 
+        //this.gameloop();
         this.af = window.requestAnimationFrame(this.gameloop);
     };
 
     this.drawPlayerPoints = (player) => {
         let draw_function = player === "player1" ? 'color_msg_player1' : 'color_msg';
+
+        this[player].buttons.forEach(x => {
+            this.output.send(this[draw_function](x.addr, color_map.off));
+        })
+
         this[player].buttons.forEach((elem, index) => {
             if (index < this[player].points) {
                 this.output.send(this[draw_function](this[player].buttons[index].addr, color_map.red));
@@ -114,7 +150,7 @@ function Game(output, input) {
 
     this.reset = () => {
         this.grid.forEach(x => {
-            this.output.send(this.color_msg(x.addr, color_map.off));
+             this.output.send(this.color_msg(x.addr, color_map.off));
         });
         this.player1.buttons.forEach(x => {
             this.output.send(this.color_msg_player1(x.addr, color_map.off));
@@ -122,6 +158,12 @@ function Game(output, input) {
         this.player2.buttons.forEach(x => {
             this.output.send(this.color_msg(x.addr, color_map.off));
         })
+    };
+
+    this.drawGrid = () => {
+        this.grid.forEach((x, i) => {
+            this.output.send(this.color_msg(x.addr, x.state));
+        });
     };
 
     this.color_msg = (addr, color) => {
