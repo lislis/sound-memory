@@ -83,30 +83,36 @@ function Game(output, input) {
     this.input.onmidimessage = this.onMidiMessage;
 
     this.updateCell = (cell) => {
-        this.grid.forEach((x, i) => {
-            if (x.addr === cell && x.state !== color_map.off) {
-                x.state = state_map.active;
-                this.animal_sounds[x.value].play();
-                console.log(x.value);
+        //console.log(cell, this.grid)
+        let cell_id = this.grid.findIndex((x, i) => x.addr === cell);
+        console.log(cell_id, this.grid[cell_id].value);
+
+        if (cell_id !== -1) {
+            if (this.grid[cell_id].state !== color_map.off) {
+                this.grid[cell_id].state = state_map.active;
+                this.animal_sounds[this.grid[cell_id].value].play();
+                //console.log(this.grid[cell_id]);
 
                 if (this[this.current_turn].picks === 0) {
-                    this.active_cell = x;
+                    this.active_cell = cell_id;
                 } else {
-                    if (x.value === this.active_cell.value) {
+                    //debugger
+                    if (this.grid[cell_id].value === this.grid[this.active_cell].value) {
                         this[this.current_turn].points++;
-                        this[this.current_turn].picks = 0;
-                        x.state = color_map.off;
-                        this.active_cell.state = color_map.off;
-                        this.active_cell = null;
-                        // play win sound
+                        //this[this.current_turn].picks = 0; // we go again
+                        this.grid[cell_id].state = color_map.off;
+                        this.grid[this.active_cell].state = color_map.off;
+                        // win
                     } else {
-                        x.state = color_map.yellow;
-                        this.active_cell.state = color_map.yellow;
-                        // play womp womp sound
+                        this.grid[cell_id].state = color_map.yellow;
+                        this.grid[this.active_cell].state = color_map.yellow;
+                        // womp womp
                     }
+                    this.active_cell = null;
                 }
-            }
-        });
+            } // else we ignore, it's been played
+        }
+
     };
 
     this.handlePlayerPicks = () => {
@@ -124,7 +130,7 @@ function Game(output, input) {
 
         for (let i = 0; i <= 7; i++) {
             for (let j = 0; j <= 7; j++) {
-                grid.push({ addr: `0x${j}${i}`,
+                grid.push({ addr: `0x${i === 0? '' : i}${j}`,
                             state: state_map.unknown,
                             value: this.random_animals[counter].animal });
                 counter++;
