@@ -51,13 +51,13 @@ async function midi_connect(controller_name) {
   let input, output;
 
   midiAccess.inputs.forEach((entry) => {
-    if (entry.name === controller_name) {
+    if (entry.name.startsWith(controller_name)) {
       input = entry;
       //input.onmidimessage = onMIDIMessage;
     }
   });
   midiAccess.outputs.forEach((entry) => {
-    if (entry.name === controller_name) {
+    if (entry.name.startsWith(controller_name)) {
       output = entry;
     }
   });
