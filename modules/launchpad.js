@@ -75,14 +75,14 @@ function Game(output, input) {
         if (event_msg[2] === note_off ) {
             console.log(event_msg, this.current_turn);
 
-            this.updateCell(event_msg[1]);
+            this.update(event_msg[1]);
             this.handlePlayerPicks();
         }
 
     }
     this.input.onmidimessage = this.onMidiMessage;
 
-    this.updateCell = (cell) => {
+    this.update = (cell) => {
         //console.log(cell, this.grid)
         let cell_id = this.grid.findIndex((x, i) => x.addr === cell);
         console.log(cell_id, this.grid[cell_id].value);
@@ -113,6 +113,9 @@ function Game(output, input) {
             } // else we ignore, it's been played
         }
 
+        this.drawPlayerPoints('player1');
+        this.drawPlayerPoints('player2');
+        this.drawGrid();
     };
 
     this.handlePlayerPicks = () => {
@@ -165,17 +168,10 @@ function Game(output, input) {
         this.drawGrid();
 
         this.current_turn = 'player1';
-        this.af = window.requestAnimationFrame(this.gameloop);
-        this.gameloop();
-    };
-    this.gameloop = (dt) => {
-        //this.reset();
-
+        
         this.drawPlayerPoints('player1');
         this.drawPlayerPoints('player2');
         this.drawGrid();
-
-        this.af = window.requestAnimationFrame(this.gameloop);
     };
 
     this.drawPlayerPoints = (player) => {
