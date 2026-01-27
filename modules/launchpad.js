@@ -1,8 +1,8 @@
 const color_map = {
-    off: '0x00',
-    yellow: '0x15',
-    red: '0x63',
-    green: '0x60',
+    off: '0x0C',
+    yellow: '0x3E',
+    red: '0x0F',
+    green: '0x3C',
 };
 import animals from '../data/animals.json' with { type: 'json' };
 
