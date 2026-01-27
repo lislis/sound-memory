@@ -22,7 +22,7 @@ function preloadSounds(animalSounds) {
     return new Promise((resolve, reject) => {
         animalSounds.forEach(item => {
             const audio = new Audio();
-            audio.src = item.soundFilePath;
+            audio.src = item.soundFilePath + "#t=0,3";
             audio.preload = "auto";
 
             audio.addEventListener("canplaythrough", () => {
@@ -131,6 +131,8 @@ function Game(output, input) {
         //console.log(animals)
         this.random_animals = shuffleArray(animals.concat(animals));
         this.animal_sounds = await preloadSounds(animals);
+
+        console.log(this.animal_sounds)
 
         this.init_grid();
         this.drawGrid();
