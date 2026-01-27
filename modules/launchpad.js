@@ -97,7 +97,7 @@ function Game(output, input) {
                     this.active_cell = cell_id;
                 } else {
                     //debugger
-                    if (this.grid[cell_id].value === this.grid[this.active_cell].value) {
+                    if (this.grid[cell_id].value === this.grid[this.active_cell].value && cell_id !== this.active_cell) {
                         this[this.current_turn].points++;
                         //this[this.current_turn].picks = 0; // we go again
                         this.grid[cell_id].state = color_map.off;
