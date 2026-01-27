@@ -65,7 +65,6 @@ function Game(output, input) {
             console.log(this.current_turn, "presses", event_msg);
 
             this.update(event_msg[1]);
-            this.handlePlayerPicks();
         }
     }
     this.input.onmidimessage = this.onMidiMessage;
@@ -99,6 +98,7 @@ function Game(output, input) {
             } // else we ignore, it's been played
         }
 
+        this.handlePlayerPicks();
         this.drawGrid();
         this.drawPlayerPoints('player1');
         this.drawPlayerPoints('player2');
@@ -131,8 +131,6 @@ function Game(output, input) {
         //console.log(animals)
         this.random_animals = shuffleArray(animals.concat(animals));
         this.animal_sounds = await preloadSounds(animals);
-
-        console.log(this.animal_sounds)
 
         this.init_grid();
         this.drawGrid();
