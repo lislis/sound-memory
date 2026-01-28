@@ -9,10 +9,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   //console.log(`loaded ${ Date.now()}`);
 
   let [midi, input, output] = await midi_connect(controller_name);
-  console.log(input);
+
+  if (!input || !output) {
+    alert("No launch device found :(");
+    return;
+  }
+
+  console.log("MIDI input:", input);
 
   //game.start_game(output);
   let game = new Game(output, input);
-  console.log(game)
+  console.log("Game object:", game)
   game.start_game();
 });
