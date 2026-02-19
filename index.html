@@ -7,6 +7,10 @@
     </head>
     <body>
         <h1>Sound Memory</h1>
-        <p>tab/click screen before starting</p>
+        <button type=button" onclick="this.remove()" id="game_start">click to start</button>
+        <div id="gameover_banner" style="visibility: hidden;">
+            <h1 id="winner_banner"></h1>
+            <button type=button" onclick="window.location.reload();">click to restart</button>
+        </div>
     </body>
 </html>

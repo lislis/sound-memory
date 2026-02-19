@@ -10,8 +10,10 @@ const color_map = {
 };
 
 const note_off = '0x0';
+const max_score = 8; // will be flexible
 
 function Game(output, input) {
+    this.et = new EventTarget();
     this.output = output;
     this.input = input;
     this.grid = [];
@@ -22,6 +24,7 @@ function Game(output, input) {
     this.random_animals = [];
     this.animal_sounds = [];
     this.gameover = false;
+
 
     this.onMidiMessage = (event) => {
         let event_msg = []
@@ -79,8 +82,16 @@ function Game(output, input) {
 
     this.increaseScoreCheckWin = () => {
         this[this.current_turn].points++;
-        if (this[this.current_turn].points === 8) {
+        if (this[this.current_turn].points === max_score) {
             this.gameover = true;
+            let evt = new CustomEvent("gameover", {
+                detail: {
+                    name: "gameover",
+                    winner: this.current_turn,
+                    score: this[this.current_turn].points
+                }
+            });
+            this.et.dispatchEvent(evt);
         }
     }
 

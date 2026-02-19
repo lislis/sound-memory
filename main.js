@@ -12,10 +12,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     alert("No launch device found :(");
     return;
   }
-
   console.log("MIDI input:", input);
 
+
   let game = new Game(output, input);
+
+  game.et.addEventListener('gameover', (e) => {
+    //console.log(e);
+    document.querySelector("#winner_banner").innerHTML = `${e.detail.winner} has won with ${e.detail.score} pairs! Congratulations!`;
+    document.querySelector("#gameover_banner").style.visibility = "visible";
+
+  });
   console.log("Game object:", game)
-  game.start_game();
+
+
+  document.querySelector('#game_start').addEventListener('click', (e) => {
+    console.log("GAME START");
+    game.start_game();
+  });
 });
