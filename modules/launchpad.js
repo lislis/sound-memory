@@ -1,12 +1,13 @@
+import animals from '../data/animals.json' with { type: 'json' };
+import { shuffleArray, preloadSounds } from './util.js';
+
 const color_map = {
     off: '0x0c',
-    yellow: '0x3e',
+    yellow: '0x3e', //0x3e
+    amber: '0x3f',
     red: '0x0f',
     green: '0x3c',
 };
-import animals from '../data/animals.json' with { type: 'json' };
-
-import { shuffleArray, preloadSounds } from './util.js';
 
 const note_off = '0x0';
 
@@ -37,39 +38,58 @@ function Game(output, input) {
     this.input.onmidimessage = this.onMidiMessage;
 
     this.update = (cell) => {
-        let cell_id = this.grid.findIndex((x, i) => x.addr === cell);
-        console.log("Pressed cell with id", cell_id, "and value", this.grid[cell_id].value);
+        let cell_id = this.gridCellValid(cell);
+        if (cell_id) {
+            console.log("Pressed cell with id", cell_id, "and value", this.grid[cell_id].value);
 
+            // let the last player's two picks stay
+            // until it's the current player's first pick
+            if (!this.active_cell && this[this.current_turn].picks === 0) {
+                this.clearGrid();
+            }
+
+            this.grid[cell_id].state = color_map.red;
+            this.animal_sounds[this.grid[cell_id].value].play();
+
+            if (this[this.current_turn].picks === 0) {
+                this.active_cell = cell_id;
+            } else {
+                if (this.grid[cell_id].value === this.grid[this.active_cell].value
+                    && cell_id !== this.active_cell) {
+                    // win
+                    this[this.current_turn].points++;
+                    this.colorPicks(cell_id, color_map.green);
+                } else {
+                    // womp womp
+                    this.colorPicks(cell_id, color_map.red);
+                }
+                this.active_cell = null;
+            }
+
+            this.handlePlayerPicks();
+            this.drawGrid();
+            this.drawPlayerPoints('player1');
+            this.drawPlayerPoints('player2');
+        }
+    };
+
+    this.colorPicks = (cell_id, color) => {
+        this.grid[cell_id].state = color;
+        this.grid[this.active_cell].state = color;
+    }
+
+    this.gridCellValid = (cell) => {
+        let cell_id = this.grid.findIndex((x, i) => x.addr === cell);
         if (cell_id !== -1) {
             if (this.grid[cell_id].state !== color_map.off) {
-                this.grid[cell_id].state = color_map.red;
-                this.animal_sounds[this.grid[cell_id].value].play();
-                //console.log(this.grid[cell_id]);
-
-                if (this[this.current_turn].picks === 0) {
-                    this.active_cell = cell_id;
-                } else {
-                    //debugger
-                    if (this.grid[cell_id].value === this.grid[this.active_cell].value && cell_id !== this.active_cell) {
-                        // win
-                        this[this.current_turn].points++;
-                        this.grid[cell_id].state = color_map.off;
-                        this.grid[this.active_cell].state = color_map.off;
-                    } else {
-                        // womp womp
-                        this.grid[cell_id].state = color_map.yellow;
-                        this.grid[this.active_cell].state = color_map.yellow;
-                    }
-                    this.active_cell = null;
-                }
-            } // else we ignore, it's been played
+                return cell_id
+            } else {
+                return null;
+            }
+        } else {
+            return null;
         }
-
-        this.handlePlayerPicks();
-        this.drawGrid();
-        this.drawPlayerPoints('player1');
-        this.drawPlayerPoints('player2');
-    };
+    }
 
     this.handlePlayerPicks = () => {
         if (this[this.current_turn].picks < 1) {
@@ -78,6 +98,18 @@ function Game(output, input) {
             this[this.current_turn].picks = 0;
             this.current_turn = this.current_turn === 'player1' ? 'player2' : 'player1';
         }
+    }
+
+    // This is used to clear 'active picks' only when the players' turn switches
+    this.clearGrid = () => {
+        this.grid.forEach((x, i) => {
+            if (x.state === color_map.red) {
+                x.state = color_map.yellow;
+            }
+            if (x.state === color_map.green) {
+                x.state = color_map.off;
+            }
+        });
     }
 
     this.init_grid = () => {
@@ -90,12 +122,10 @@ function Game(output, input) {
                             value: this.random_animals[i * 8 + j].animal });
             }
         }
-        //console.log(grid);
         this.grid = grid;
     };
 
     this.start_game = async () => {
-        //console.log(animals)
         this.random_animals = shuffleArray(animals.concat(animals));
         this.animal_sounds = await preloadSounds(animals);
 
