@@ -1,4 +1,4 @@
-import animals from '../data/animals.json' with { type: 'json' };
+import animals from '../data/animals_local.json' with { type: 'json' };
 import { shuffleArray, preloadSounds } from './util.js';
 
 const color_map = {
