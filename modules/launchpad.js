@@ -21,6 +21,7 @@ function Game(output, input) {
     this.active_cell = null;
     this.random_animals = [];
     this.animal_sounds = [];
+    this.gameover = false;
 
     this.onMidiMessage = (event) => {
         let event_msg = []
@@ -31,8 +32,11 @@ function Game(output, input) {
 
         if (event_msg[2] === note_off ) {
             console.log(this.current_turn, "presses", event_msg);
-
-            this.update(event_msg[1]);
+            if (!this.gameover) {
+                this.update(event_msg[1]);
+            } else {
+                console.log("GAME OVER, refresh browser")
+            }
         }
     }
     this.input.onmidimessage = this.onMidiMessage;
@@ -57,7 +61,7 @@ function Game(output, input) {
                 if (this.grid[cell_id].value === this.grid[this.active_cell].value
                     && cell_id !== this.active_cell) {
                     // win
-                    this[this.current_turn].points++;
+                    this.increaseScoreCheckWin();
                     this.colorPicks(cell_id, color_map.green);
                 } else {
                     // womp womp
@@ -73,9 +77,23 @@ function Game(output, input) {
         }
     };
 
+    this.increaseScoreCheckWin = () => {
+        this[this.current_turn].points++;
+        if (this[this.current_turn].points === 8) {
+            this.gameover = true;
+        }
+    }
+
     this.colorPicks = (cell_id, color) => {
         this.grid[cell_id].state = color;
         this.grid[this.active_cell].state = color;
+    }
+
+    this.colorPlayerButtons = (player, draw_function, color) => {
+        this[player].buttons.forEach(x => {
+            this.output.send(this[draw_function](x, color));
+        })
+
     }
 
     this.gridCellValid = (cell) => {
@@ -141,25 +159,36 @@ function Game(output, input) {
     this.drawPlayerPoints = (player) => {
         let draw_function = player === "player1" ? 'color_msg_player1' : 'color_msg';
 
-        this[player].buttons.forEach(x => {
-            this.output.send(this[draw_function](x, color_map.off));
-        })
 
-        this[player].buttons.forEach((elem, index) => {
-            if (index < this[player].points) {
-                this.output.send(this[draw_function](this[player].buttons[index], color_map.red));
-            }
+        if (this.gameover && this[player].points === 8) {
+            this.colorPlayerButtons(player, draw_function, color_map.green);
+        } else {
+            this.colorPlayerButtons(player, draw_function, color_map.off);
 
-            if (index == this[player].points && this.current_turn === player) {
-                this.output.send(this[draw_function](this[player].buttons[index], color_map.green));
-            }
-        })
+            this[player].buttons.forEach((elem, index) => {
+                if (index < this[player].points) {
+                    this.output.send(this[draw_function](this[player].buttons[index], color_map.red));
+                }
+
+                if (index == this[player].points && this.current_turn === player) {
+                    this.output.send(this[draw_function](this[player].buttons[index], color_map.green));
+                }
+            })
+        }
+
     };
 
     this.drawGrid = () => {
-        this.grid.forEach((x, i) => {
-            this.output.send(this.color_msg(x.addr, x.state));
-        });
+        if (this.gameover) {
+            this.grid.forEach((x, i) => {
+                this.output.send(this.color_msg(x.addr, color_map.off));
+            });
+        } else {
+            this.grid.forEach((x, i) => {
+                this.output.send(this.color_msg(x.addr, x.state));
+            });
+        }
+
     };
 
     this.color_msg = (addr, color) => {
