@@ -64,7 +64,6 @@ function Game(output, input) {
             } else {
                 if (this.grid[cell_id].value === this.grid[this.active_cell].value
                     && cell_id !== this.active_cell) {
-                    debugger
                     // win
                     this.increaseScoreCheckWin();
                     this.colorPicks(cell_id, color_map.green);
@@ -166,6 +165,7 @@ function Game(output, input) {
     // gets called through UI interaction
     this.setGridSize = (size) => {
         this.grid_size =  parseInt(size, 10);
+        this.reset_players();
         this.start_game();
     };
 
@@ -251,7 +251,11 @@ function Game(output, input) {
                 this.output.send(this.color_msg(x.addr, x.state));
             });
         }
+    };
 
+    this.reset_players = () => {
+        this.player1 = { buttons: ['0x68', '0x69', '0x6a', '0x6b', '0x6c', '0x6d', '0x6e', '0x6f'], points: 0, picks: 0, name: "player1" };
+        this.player2 = { buttons: ['0x08', '0x18', '0x28', '0x38', '0x48', '0x58', '0x68', '0x78'], points: 0, picks: 0, name: "player2" };
     };
 
     this.color_msg = (addr, color) => {
