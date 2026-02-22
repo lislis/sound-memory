@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelector("#gameover_banner").style.visibility = "visible";
 
   });
-  console.log("Game object:", game)
+  console.log("Game object:", game);
 
   document.querySelectorAll('.gridsize').forEach((btn) => {
     btn.addEventListener('click', (evt) => {

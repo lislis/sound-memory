@@ -18,8 +18,8 @@ function Game(output, input) {
     this.input = input;
     this.grid_size = max_score;
     this.grid = [];
-    this.player1 = { buttons: ['0x68', '0x69', '0x6a', '0x6b', '0x6c', '0x6d', '0x6e', '0x6f'], points: 0, picks: 0 };
-    this.player2 = { buttons: ['0x08', '0x18', '0x28', '0x38', '0x48', '0x58', '0x68', '0x78'], points: 0, picks: 0 };
+    this.player1 = { buttons: ['0x68', '0x69', '0x6a', '0x6b', '0x6c', '0x6d', '0x6e', '0x6f'], points: 0, picks: 0, name: "player1" };
+    this.player2 = { buttons: ['0x08', '0x18', '0x28', '0x38', '0x48', '0x58', '0x68', '0x78'], points: 0, picks: 0, name: "player2" };
     this.current_turn = '';
     this.active_cell = null;
     this.random_animals = [];
@@ -64,6 +64,7 @@ function Game(output, input) {
             } else {
                 if (this.grid[cell_id].value === this.grid[this.active_cell].value
                     && cell_id !== this.active_cell) {
+                    debugger
                     // win
                     this.increaseScoreCheckWin();
                     this.colorPicks(cell_id, color_map.green);
@@ -83,16 +84,35 @@ function Game(output, input) {
 
     this.increaseScoreCheckWin = () => {
         this[this.current_turn].points++;
-        if (this[this.current_turn].points === max_score) {
-            this.gameover = true;
-            let evt = new CustomEvent("gameover", {
-                detail: {
-                    name: "gameover",
-                    winner: this.current_turn,
-                    score: this[this.current_turn].points
-                }
-            });
-            this.et.dispatchEvent(evt);
+
+        // winnning condition is different is grid size is smaller
+        if (this.grid_size = 4) {
+            if (this.player1.points + this.player2.points >= max_score) {
+
+                let winner = this.player1.points >  this.player2.points ? this.player1 : this.player2;
+
+                this.gameover = true;
+                let evt = new CustomEvent("gameover", {
+                    detail: {
+                        name: "gameover",
+                        winner: winner.name,
+                        score: winner.points
+                    }
+                });
+                this.et.dispatchEvent(evt);
+            }
+        } else {
+            if (this[this.current_turn].points === max_score) {
+                this.gameover = true;
+                let evt = new CustomEvent("gameover", {
+                    detail: {
+                        name: "gameover",
+                        winner: this.current_turn,
+                        score: this[this.current_turn].points
+                    }
+                });
+                this.et.dispatchEvent(evt);
+            }
         }
     };
 
@@ -160,32 +180,22 @@ function Game(output, input) {
             }
         }
 
-        // calculate margin
         let margin = (max_score - this.grid_size) / 2;
         let max_length = this.grid_size -1 + margin;
 
         let index_counter = 0;
         for (let i = margin; i <= max_length; i++) {
             for (let j = margin; j <= max_length; j++) {
-                //console.log(this.random_animals[index_counter])
                 let current_address = this.format_address(i, j);
 
                 let index = grid.findIndex(obj => obj.addr === current_address);
                 if (index !== -1) {
-                    //debugger
                     grid[index] = {
                         addr: current_address,
                         state: color_map.yellow,
                         value: this.random_animals[index_counter].animal
                     };
-                } else {
-                    // this might never hit??
-                    grid.push({ addr: current_address,
-                                state: color_map.yellow,
-                                value: this.random_animals[index_counter].animal
-                    });
                 }
-
                 index_counter++;
             }
         }
