@@ -3,19 +3,20 @@ import { shuffleArray, preloadSounds } from './util.js';
 
 const color_map = {
     off: '0x0c',
-    yellow: '0x3e', //0x3e
+    yellow: '0x3e',
     amber: '0x3f',
     red: '0x0f',
     green: '0x3c',
 };
 
 const note_off = '0x0';
-const max_score = 8; // will be flexible
+const max_score = 8;
 
 function Game(output, input) {
     this.et = new EventTarget();
     this.output = output;
     this.input = input;
+    this.grid_size = max_score;
     this.grid = [];
     this.player1 = { buttons: ['0x68', '0x69', '0x6a', '0x6b', '0x6c', '0x6d', '0x6e', '0x6f'], points: 0, picks: 0 };
     this.player2 = { buttons: ['0x08', '0x18', '0x28', '0x38', '0x48', '0x58', '0x68', '0x78'], points: 0, picks: 0 };
@@ -93,24 +94,25 @@ function Game(output, input) {
             });
             this.et.dispatchEvent(evt);
         }
-    }
+    };
 
     this.colorPicks = (cell_id, color) => {
         this.grid[cell_id].state = color;
         this.grid[this.active_cell].state = color;
-    }
+    };
 
     this.colorPlayerButtons = (player, draw_function, color) => {
         this[player].buttons.forEach(x => {
             this.output.send(this[draw_function](x, color));
-        })
-
-    }
+        });
+    };
 
     this.gridCellValid = (cell) => {
+        //debugger
         let cell_id = this.grid.findIndex((x, i) => x.addr === cell);
         if (cell_id !== -1) {
-            if (this.grid[cell_id].state !== color_map.off) {
+            let state = this.grid[cell_id].state;
+            if (state !== color_map.off) {
                 return cell_id
             } else {
                 return null;
@@ -118,7 +120,7 @@ function Game(output, input) {
         } else {
             return null;
         }
-    }
+    };
 
     this.handlePlayerPicks = () => {
         if (this[this.current_turn].picks < 1) {
@@ -127,7 +129,7 @@ function Game(output, input) {
             this[this.current_turn].picks = 0;
             this.current_turn = this.current_turn === 'player1' ? 'player2' : 'player1';
         }
-    }
+    };
 
     // This is used to clear 'active picks' only when the players' turn switches
     this.clearGrid = () => {
@@ -139,24 +141,64 @@ function Game(output, input) {
                 x.state = color_map.off;
             }
         });
-    }
+    };
+
+    // gets called through UI interaction
+    this.setGridSize = (size) => {
+        this.grid_size =  parseInt(size, 10);
+        this.start_game();
+    };
 
     this.init_grid = () => {
         let grid = [];
 
-        for (let i = 0; i <= 7; i++) {
-            for (let j = 0; j <= 7; j++) {
-                grid.push({ addr: `0x${i === 0? '' : i}${j}`,
-                            state: color_map.yellow,
-                            value: this.random_animals[i * 8 + j].animal });
+        for (let i = 0; i <= max_score -1; i++) {
+            for (let j = 0; j <= max_score -1; j++) {
+                grid.push({ addr: this.format_address(i, j),
+                            state: color_map.off,
+                            value: ""});
             }
         }
+
+        // calculate margin
+        let margin = (max_score - this.grid_size) / 2;
+        let max_length = this.grid_size -1 + margin;
+
+        let index_counter = 0;
+        for (let i = margin; i <= max_length; i++) {
+            for (let j = margin; j <= max_length; j++) {
+                //console.log(this.random_animals[index_counter])
+                let current_address = this.format_address(i, j);
+
+                let index = grid.findIndex(obj => obj.addr === current_address);
+                if (index !== -1) {
+                    //debugger
+                    grid[index] = {
+                        addr: current_address,
+                        state: color_map.yellow,
+                        value: this.random_animals[index_counter].animal
+                    };
+                } else {
+                    // this might never hit??
+                    grid.push({ addr: current_address,
+                                state: color_map.yellow,
+                                value: this.random_animals[index_counter].animal
+                    });
+                }
+
+                index_counter++;
+            }
+        }
+        console.log(grid.length)
         this.grid = grid;
     };
 
     this.start_game = async () => {
-        this.random_animals = shuffleArray(animals.concat(animals));
-        this.animal_sounds = await preloadSounds(animals);
+        let num_pairs = (this.grid_size * this.grid_size) / 2;
+        let sized_animals = animals.slice(0, num_pairs);
+
+        this.random_animals = shuffleArray(sized_animals.concat(sized_animals));
+        this.animal_sounds = await preloadSounds(sized_animals);
 
         this.init_grid();
         this.drawGrid();
@@ -207,6 +249,9 @@ function Game(output, input) {
     }
     this.color_msg_player1 = (addr, color) => {
         return ['0xb0', `${addr}`, `${color}`];
+    }
+    this.format_address = (c1, c2) => {
+        return `0x${c1 === 0? '' : c1}${c2}`;
     }
 }
 

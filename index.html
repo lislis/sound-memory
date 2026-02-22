@@ -8,6 +8,13 @@
     <body>
         <h1>Sound Memory</h1>
         <button type=button" onclick="this.remove()" id="game_start">click to start</button>
+
+        <div id="settings">
+            <button type=button" data-size="8" class="gridsize">8x8 grid (32 pairs)</button>
+            <button type=button"  data-size="6" class="gridsize">6x6 grid (18 pairs)</button>
+            <button type=button"  data-size="4" onclick="" id=""  class="gridsize">4x4 grid (8 pairs)</button>
+        </div>
+
         <div id="gameover_banner" style="visibility: hidden;">
             <h1 id="winner_banner"></h1>
             <button type=button" onclick="window.location.reload();">click to restart</button>

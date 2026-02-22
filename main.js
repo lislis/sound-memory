@@ -25,6 +25,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   console.log("Game object:", game)
 
+  document.querySelectorAll('.gridsize').forEach((btn) => {
+    btn.addEventListener('click', (evt) => {
+      //console.log(evt.target.dataset['size'])
+      let size = evt.target.dataset['size'];
+      game.setGridSize(size);
+    });
+  });
+
 
   document.querySelector('#game_start').addEventListener('click', (e) => {
     console.log("GAME START");
