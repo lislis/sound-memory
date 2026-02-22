@@ -88,7 +88,18 @@ function Game(output, input) {
         if (this.grid_size = 4) {
             if (this.player1.points + this.player2.points >= max_score) {
 
-                let winner = this.player1.points >  this.player2.points ? this.player1 : this.player2;
+                let winner;
+
+                if (this.player1.points >  this.player2.points) {
+                    winner = this.player1;
+                } else if (this.player1.points < this.player2.points) {
+                    winner = this.player2;
+                } else {
+                    winner = {
+                        name: "player 1 and player2",
+                        points: "4"
+                    }
+                }
 
                 this.gameover = true;
                 let evt = new CustomEvent("gameover", {
@@ -199,7 +210,7 @@ function Game(output, input) {
                 index_counter++;
             }
         }
-        console.log(grid.length)
+        //console.log(grid.length)
         this.grid = grid;
     };
 
