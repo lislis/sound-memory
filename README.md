@@ -1,10 +1,9 @@
-# sound memory prototype
+# Sound memory
 
+You play a game of memory (finding matching pairs) but with sounds. This setup assumes you have a Lauchpad Mini (other launchpads might work, but I never tested it. LEt me know if you have one and it works/ doesn't work!)
 
-This is a first prototype coded in one day at the Berlin Mini Game Jam. It's mostly to get the logic right and have something playable to test the interaction and the concept as such.
+It's vanilla JavaScript using the WebMIDI api to talk to the Novation Launchpad Mini.
 
-It's vanilla JavaScript using the WebMIDI api to talk to the novation launchpad mini.
+The animal sounds are all from https://freeanimalsounds.org/ and cut to the first 2 seconds. Yes, goat and sheep sound very similar and I don't know if cocodiles really sound like that.
 
-The animal sounds are all from https://freeanimalsounds.org/ and really need to be cut into shorter snippets, I'm sorry if you get 'coyote'.
-
-Found the original [Programmer’s Reference](https://fael-downloads-prod.focusrite.com/customer/prod/downloads/launchpad-programmers-reference.pdf) online.
+Found the original [Programmer’s Reference of the launchpad](https://fael-downloads-prod.focusrite.com/customer/prod/downloads/launchpad-programmers-reference.pdf) online and link it here for quick access.
