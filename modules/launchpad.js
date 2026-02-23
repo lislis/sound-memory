@@ -19,8 +19,8 @@ function Game(output, input) {
     this.input = input;
     this.grid_size = max_score;
     this.grid = [];
-    this.player1 = { buttons: ['0x68', '0x69', '0x6a', '0x6b', '0x6c', '0x6d', '0x6e', '0x6f'], points: 0, picks: 0, name: "player1" };
-    this.player2 = { buttons: ['0x08', '0x18', '0x28', '0x38', '0x48', '0x58', '0x68', '0x78'], points: 0, picks: 0, name: "player2" };
+    this.player1 = { buttons: ['0x68', '0x69', '0x6a', '0x6b', '0x6c', '0x6d', '0x6e', '0x6f'], points: 0, picks: 0, name: "player1", anotherTurn: false };
+    this.player2 = { buttons: ['0x08', '0x18', '0x28', '0x38', '0x48', '0x58', '0x68', '0x78'], points: 0, picks: 0, name: "player2", anotherTurn: false };
     this.current_turn = '';
     this.active_cell = null;
     this.random_animals = [];
@@ -67,11 +67,13 @@ function Game(output, input) {
                 if (this.grid[cell_id].value === this.grid[this.active_cell].value
                     && cell_id !== this.active_cell) {
                     // win
+                    this[this.current_turn].anotherTurn = true;
                     this.ui_sounds['win'].play();
                     this.increaseScoreCheckWin();
                     this.colorPicks(cell_id, color_map.green);
                 } else {
                     // womp womp
+                    this[this.current_turn].anotherTurn = false; // maybe not needed here?
                     this.colorPicks(cell_id, color_map.red);
                 }
                 this.active_cell = null;
@@ -160,7 +162,13 @@ function Game(output, input) {
             this[this.current_turn].picks++;
         } else if(this[this.current_turn].picks === 1) {
             this[this.current_turn].picks = 0;
-            this.current_turn = this.current_turn === 'player1' ? 'player2' : 'player1';
+            //this.current_turn = this.current_turn === 'player1' ? 'player2' : 'player1';
+            if (this[this.current_turn].anotherTurn) {
+                this.current_turn = this.current_turn;
+                this[this.current_turn].anotherTurn = false;
+            } else {
+                this.current_turn = this.current_turn === 'player1' ? 'player2' : 'player1';
+            }
         }
     };
 
@@ -225,9 +233,6 @@ function Game(output, input) {
 
         this.random_animals = shuffleArray(sized_animals.concat(sized_animals));
         this.animal_sounds = await preloadSounds(sized_animals);
-
-        debugger
-
 
         this.init_grid();
         this.drawGrid();
