@@ -33,9 +33,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-
-  document.querySelector('#game_start').addEventListener('click', (e) => {
-    console.log("GAME START");
-    game.start_game();
-  });
 });

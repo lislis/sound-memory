@@ -11,6 +11,7 @@ const color_map = {
 
 const note_off = '0x0';
 const max_score = 8;
+const ui_sounds = [{ soundFilePath: "/data/money-win.mp3", animal: "win"}];
 
 function Game(output, input) {
     this.et = new EventTarget();
@@ -25,6 +26,7 @@ function Game(output, input) {
     this.random_animals = [];
     this.animal_sounds = [];
     this.gameover = false;
+    this.ui_sounds = [];
 
 
     this.onMidiMessage = (event) => {
@@ -65,6 +67,7 @@ function Game(output, input) {
                 if (this.grid[cell_id].value === this.grid[this.active_cell].value
                     && cell_id !== this.active_cell) {
                     // win
+                    this.ui_sounds['win'].play();
                     this.increaseScoreCheckWin();
                     this.colorPicks(cell_id, color_map.green);
                 } else {
@@ -218,8 +221,13 @@ function Game(output, input) {
         let num_pairs = (this.grid_size * this.grid_size) / 2;
         let sized_animals = animals.slice(0, num_pairs);
 
+        this.ui_sounds = await preloadSounds(ui_sounds);
+
         this.random_animals = shuffleArray(sized_animals.concat(sized_animals));
         this.animal_sounds = await preloadSounds(sized_animals);
+
+        debugger
+
 
         this.init_grid();
         this.drawGrid();
