@@ -67,7 +67,8 @@ function Game(output, input) {
                 if (this.grid[cell_id].value === this.grid[this.active_cell].value
                     && cell_id !== this.active_cell) {
                     // win
-                    this[this.current_turn].anotherTurn = true;
+                  this[this.current_turn].anotherTurn = true;
+                  this.ui_sounds['win'].volume = 0.5;
                     this.ui_sounds['win'].play();
                     this.increaseScoreCheckWin();
                     this.colorPicks(cell_id, color_map.green);
@@ -90,7 +91,7 @@ function Game(output, input) {
         this[this.current_turn].points++;
 
         // winnning condition is different is grid size is smaller
-        if (this.grid_size = 4) {
+        if (this.grid_size == 4) {
             if (this.player1.points + this.player2.points >= max_score) {
 
                 let winner;
